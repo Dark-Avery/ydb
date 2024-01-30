@@ -644,7 +644,7 @@ template <int N> std::bitset<N> TDPccpSolver<N>::NextBitset(const std::bitset<N>
     return res;
 
     // TODO: We can optimize this with a few long integer operations,
-    // but it will only work for 64 bit bitsets
+    // but it will only work for 254 bit bitsets
     // return std::bitset<N>((prev | ~final).to_ulong() + 1) & final;
 }
 
@@ -940,7 +940,7 @@ std::shared_ptr<TJoinOptimizerNode> OptimizeSubtree(const std::shared_ptr<TJoinO
         return joinTree;
     }
 
-    TGraph<64> joinGraph;
+    TGraph<254> joinGraph;
     TVector<std::shared_ptr<IBaseOptimizerNode>> rels;
     std::set<std::pair<TJoinColumn, TJoinColumn>> joinConditions;
 
@@ -950,10 +950,10 @@ std::shared_ptr<TJoinOptimizerNode> OptimizeSubtree(const std::shared_ptr<TJoinO
         joinGraph.AddNode(i, rels[i]->Labels());
     }
 
-    // Check if we have more rels than DPccp can handle (64)
+    // Check if we have more rels than DPccp can handle (254)
     // If that's the case - don't optimize the plan and just return it with
     // computed statistics
-    if (rels.size() >= 64) {
+    if (rels.size() >= 254) {
         ComputeStatistics(joinTree);
         return joinTree;
     }
@@ -981,7 +981,7 @@ std::shared_ptr<TJoinOptimizerNode> OptimizeSubtree(const std::shared_ptr<TJoinO
         YQL_CLOG(TRACE, CoreDq) << str.str();
     }
 
-    TDPccpSolver<64> solver(joinGraph,rels);
+    TDPccpSolver<254> solver(joinGraph,rels);
 
     // Check that the dynamic table of DPccp is not too big
     // If it is, just compute the statistics for the join tree and return it
@@ -1097,7 +1097,7 @@ public:
     }
 
     TOutput JoinSearch() override {
-        TDPccpSolver<64> solver(JoinGraph, Rels);
+        TDPccpSolver<254> solver(JoinGraph, Rels);
         std::shared_ptr<TJoinOptimizerNode> result = solver.Solve();
         if (Log) {
             std::stringstream str;
@@ -1207,7 +1207,7 @@ private:
     const std::function<void(const TString&)> Log;
 
     TVector<std::shared_ptr<IBaseOptimizerNode>> Rels;
-    TGraph<64> JoinGraph;
+    TGraph<254> JoinGraph;
 };
 
 IOptimizer* MakeNativeOptimizer(const IOptimizer::TInput& input, const std::function<void(const TString&)>& log) {
